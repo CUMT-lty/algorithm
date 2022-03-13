@@ -96,7 +96,6 @@ class Solution {
 ```
 
 3.  两个一组反转链表，难点：就地反转，组内反转而组间顺序不变（题24）
-
 ```java
 class Solution {      // 循环
     public ListNode swapPairs(ListNode head) {
