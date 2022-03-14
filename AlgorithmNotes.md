@@ -14,7 +14,7 @@ tags: "题号对应的是leetcode主站题号"
 // 头指针head
 class Solution {  // 非递归
 	public ListNode reverseList(ListNode head) {
-	    if(head==null || head.next==null) return head;   // 处理边界条件
+        if(head==null || head.next==null) return head;   // 处理边界条件
         ListNode pre;
         ListNode back;
         ListNode tmp;
@@ -50,17 +50,17 @@ class Solution {  // 递归
 class Solution {
 
 	public void reverseList(ListNode head) {  // 反转链表方法
-	    if(head==null || head.next==null) return;  // 处理边界条件
-	    ListNode pre;
-	    ListNode back;
-	    ListNode tmp;
-	    back = head;
-	    pre = back.next;
+		if(head==null || head.next==null) return;  // 处理边界条件
+		ListNode pre;
+		ListNode back;
+		ListNode tmp;
+		back = head;
+		pre = back.next;
         while(pre!=null){
-	  	    tmp = pre.next;
-	  	    pre.next = back;
-	  	    back = pre;
-	  	    pre = tmp;
+	    	tmp = pre.next;
+	    	pre.next = back;
+	    	back = pre;
+	    	pre = tmp;
 	    }
 	    head.next=null;
     }
@@ -83,16 +83,14 @@ class Solution {
 			end = end.next;    // 找end
 			endNext = endNext.next;
 			i++;
-    	}
+        }
 		end.next = null; //断开
 
 		// 反转中段链
-    	reverseList(start);
-		// 前后都链接上
+        reverseList(start);
 		startBefore.next = end;
 		start.next = endNext;
-		// 分情况返回
-		return startBefore == dummyNode ? end : head;
+		return dummyNode.next;
 	}
 }
 ```
