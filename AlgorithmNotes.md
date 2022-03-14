@@ -14,34 +14,34 @@ tags: "题号对应的是leetcode主站题号"
 // 头指针head
 class Solution {  // 非递归
 	public ListNode reverseList(ListNode head) {
-		if(head==null || head.next==null) return head;   // 处理边界条件
-		ListNode pre;
-		ListNode back;
-		ListNode tmp;
-		back = head;
-		pre = back.next;
-    	while(pre!=null){
-			tmp = pre.next;
-			pre.next = back;
-			back = pre;
-			pre = tmp;
-		}
-		head.next=null;
-		return back;
-  }
+	    if(head==null || head.next==null) return head;   // 处理边界条件
+        ListNode pre;
+        ListNode back;
+        ListNode tmp;
+        back = head;
+        pre = back.next;
+        while(pre!=null){
+            tmp = pre.next;
+            pre.next = back;
+            back = pre;
+            pre = tmp;
+	    }
+        head.next=null;
+        return back;
+    }
 }
 ```
 ```java
 class Solution {  // 递归
-	public ListNode reverseList(ListNode head) {
-    if (head == null || head.next == null) {
-        return head;
+    public ListNode reverseList(ListNode head) {
+        if (head == null || head.next == null) {
+            return head;
+        }
+        ListNode revHead = reverseList(head.next);
+        head.next.next = head;
+        head.next = null;
+        return revHead;
     }
-    ListNode revHead = reverseList(head.next);
-    head.next.next = head;
-    head.next = null;
-    return revHead;
-  }
 }
 ```
 
@@ -50,20 +50,20 @@ class Solution {  // 递归
 class Solution {
 
 	public void reverseList(ListNode head) {  // 反转链表方法
-		if(head==null || head.next==null) return;  // 处理边界条件
-		ListNode pre;
-		ListNode back;
-		ListNode tmp;
-		back = head;
-		pre = back.next;
-    while(pre!=null){
-	  	tmp = pre.next;
-	  	pre.next = back;
-	  	back = pre;
-	  	pre = tmp;
-	  }
-	  head.next=null;
-  }
+	    if(head==null || head.next==null) return;  // 处理边界条件
+	    ListNode pre;
+	    ListNode back;
+	    ListNode tmp;
+	    back = head;
+	    pre = back.next;
+        while(pre!=null){
+	  	    tmp = pre.next;
+	  	    pre.next = back;
+	  	    back = pre;
+	  	    pre = tmp;
+	    }
+	    head.next=null;
+    }
 
 	public ListNode reverseBetween(ListNode head, int left, int right) {
 		if(head==null || head.next==null || left==right) return head;
@@ -120,7 +120,8 @@ class Solution {      // 循环
         return head;
     }
 }
-
+```
+```java
 class Solution {      // 递归写法
     public ListNode swapPairs(ListNode head) {
         if(head == null || head.next == null)
@@ -132,7 +133,6 @@ class Solution {      // 递归写法
         return node2;
     }
 }
-
 ```
 ### 4. k个一组反转链表（题25）
 - 递归思路：
