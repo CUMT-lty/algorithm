@@ -430,8 +430,234 @@ class Solution {
 ```
 
 # 栈和队列
+## 栈和递归
+### 1. 有效括号
+- 区分左右括号
+- 左括号直接入栈
+- 如果是右括号入栈要判断此时是否栈空，栈空直接返回false，栈非空再判断栈顶是否是与之对应的左括号
+```java
+import java.util.Stack;
+class Solution {
+    public boolean isValid(String s) {
+        Stack<Character> stack = new Stack<Character>();
+        for (int i=0; i<s.length(); i++){
+            char x = s.charAt(i);
+            if (x=='(' || x=='[' || x=='{') stack.push(x);
+            if (stack.empty()) return false;
+            if (x==')' && stack.pop()!='(') return false;
+            if (x==']' && stack.pop()!='[') return false;
+            if (x=='}' && stack.pop()!='{') return false;
+        }
+        return stack.empty();
+    }
+}
+```
+### 2. 多维数组flatten（题341）
+- 递归思路：只处理最外层，内层交给递归处理，例如：[1, [2, [3, [4, 5]]], 6]，按第一层划分为
+- 1
+- [2, [3, [4, 5]]]
+- 6
+- 如果是一个整数就直接加入结果集中，如果仍然是数组就将递归结果加入结果集中
 
-1.  辅助栈（题155：O(1)找min）
+### 3. O(1)找min（题155）
+- 这道题很简单了，记录一下是因为很多和栈有关的题目都用到了辅助栈
+- 这题是设置一个辅助栈，只有比主栈栈顶元素小的才入辅助栈，则栈的最小元素永远是辅助栈的栈顶
+
+## 二叉树的层序遍历
+
+## 无权图BFS遍历
+## 实现优先队列
+## 优先队列应用
+## 双端队列及应用
+## 栈和队列的相互实现
+
+
+# 二叉树
+## 二叉树的遍历
+### 1. 二叉树的先序遍历
+- 递归，思路：访问根节点，先序遍历左子树，先序遍历右子树
+```java
+import java.util.ArrayList;
+import java.util.List;
+class Solution {
+
+    public void preorder(TreeNode root, List<Integer> res) {
+        if (root==null) return;
+        res.add(root.val);             // 访问根结点
+        preorder(root.left, res);      // 先序遍历左子树
+        preorder(root.right, res);     // 先序遍历右子树
+    }
+
+    public List<Integer> preorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<Integer>();
+        preorder(root, res);
+        return res;
+    }
+}
+```
+- 非递归，思路
+  - 一直向左走，每走到一个结点就访问、压栈、向左，直到左边没有分支
+  - 出栈，往右走
+```java
+import java.util.Stack;
+class Solution {
+    public List<Integer> preorderTraversal(TreeNode root) {
+        Stack<TreeNode> stack = new Stack<TreeNode>();;
+        List<Integer> res = new ArrayList<Integer>();
+        TreeNode curNode = root;    // 当前正在访问的结点
+        while(curNode!=null || stack.isEmpty() == false){  // 栈非空说明还没访问
+            if (curNode!=null) {      // 左子树非空就一直往左走
+                res.add(curNode.val);      // 访问
+                stack.push(curNode);       // 入栈
+                curNode = curNode.left;    // 往左走
+            } else {
+                curNode = stack.pop();  // 出栈
+                curNode = curNode.right;  // 往右走
+            }
+        }
+        return res;
+    }
+}
+```
+### 2. 二叉树的中序遍历
+- 递归和非递归的思路都类似二叉树的先序遍历
+- 递归中序：
+```java
+import java.util.ArrayList;
+import java.util.List;
+class Solution {
+
+    public void inorder(TreeNode root, List<Integer> res){
+        if (root==null) return;
+        inorder(root.left, res);          // 中序遍历左子树
+        res.add(root.val);                // 访问根结点
+        inorder(root.right, res);         // 中序遍历右子树
+    }
+
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<Integer>();
+        inorder(root, res);
+        return res;
+    }
+}
+
+```
+- 非递归中序：
+```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+
+class Solution {
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<Integer>();
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        TreeNode curNode = root;
+        while (curNode!=null || stack.empty()==false){
+            if (curNode!=null){   // 是否走到头
+                stack.push(curNode);      //压栈
+                curNode = curNode.left;   // 往左走
+            } else {              // 如果已经走到头
+                curNode = stack.pop();   // 出栈
+                res.add(curNode.val);    // 访问，和先序的区别在于先序是在入栈前访问，中序是在出栈后访问
+                curNode = curNode.right;   // 往右走
+            }
+        }
+        return res;
+    }
+}
+```
+### 3. 二叉树的后序遍历
+- 递归思路和先序中序类似
+```java
+import java.util.ArrayList;
+import java.util.List;
+class Solution {
+    public void postorder(TreeNode root, List<Integer> res){
+        if (root==null) return;
+        postorder(root.left, res);        // 后序遍历左子树
+        postorder(root.right, res);       // 后序遍历右子树
+        res.add(root.val);                // 访问根结点
+    }
+
+    public List<Integer> postorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<Integer>();
+        postorder(root, res);
+        return res;
+    }
+}
+```
+- **非递归思路：后序的非递归做法比先序和中序要麻烦一点，因为出栈的时候有可能是从左子树返回的也有可能是从右子树返回的，所以要添加标记来区分，大致思路：
+  - 先一路往左走走到头
+  - 返回看栈顶结点是否有右子树且该右子树没有被访问过
+  - 如果满足上述条件，则往右走，并标记此结点说明以此结点为根节点的右子树被访问过了
+  - 如果不满足此条件，说明可以输出结点值了
+- 这里有一个坑点，当要输出时，不能简单地让当次循环的curNode更新，因为如果更新了curNode并进入了新循环，会重复将左子树压栈。后面会记录这个错误写法。
+```java
+import java.util.*;
+class Solution {
+    public List<Integer> postorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<Integer>();
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        HashSet<TreeNode> visited = new HashSet<TreeNode>();    // 记录从走过右路径的结点
+        TreeNode curNode = root;
+        while(curNode!=null || stack.empty()==false){
+            while (curNode!=null){       // 一直往左走，走到头
+                stack.push(curNode);
+                curNode = curNode.left;
+            }
+            TreeNode tmp = stack.peek();
+            if (tmp.right!=null && visited.contains(tmp.right)==false){     // 如果有右子树且右子树没有被访问过
+                curNode = tmp.right;       // 向右走
+                visited.add(curNode);      // 标记以此为根的右子树被访问过了
+            } else {
+                res.add(tmp.val);
+                stack.pop();
+            }
+        }
+        return res;
+    }
+}
+```
+- 下面是一个错误写法
+```java
+if(curNode.right!=null && visited.contains(curNode.right)==false){   // 如果右子树存在，而且右子树未被访问
+    curNode = curNode.right;
+    visited.add(curNode);    // 以此为根的右子树被访问过了
+} else {
+    res.add(curNode.val);
+    stack.pop();
+    curNode = stack.pop();     // 这里不能更新curNode，如果更新了并带入了新一轮的循环，就会导致左子树结点重复压栈
+}
+```
+
+### 4. 二叉树的层序遍历（题102）
+- 二叉树的层序遍历借助队列实现
+- **这题不止要遍历，还要体现层次。当本层最后一个结点出队后，队中剩下的结点个数就是下一层的节点数
+```java
+import java.util.*;
+class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (root==null) return res;                              // 如果树根为空，直接返回空列表
+        Queue<TreeNode> queue = new LinkedList<TreeNode>();
+        queue.offer(root);     // 先把根结点入队
+        while(queue.size()!=0){     // 外层循环一次处理一层
+            int count = queue.size();        // 本层结点个数
+            List<Integer> tmpRes = new ArrayList<Integer>();  // 存放本层所有结点的数组
+            while(count!=0){      // 处理本层
+                TreeNode node = queue.poll();         // 出队
+                tmpRes.add(node.val);                 // 输出
+                if (node.left!=null) queue.offer(node.left);          // 如果有左孩子，左孩子入队
+                if (node.right!=null) queue.offer(node.right);        // 如果有右孩子，右孩子入队
+                count--;
+            }
+            res.add(tmpRes);        // 将本层结果加入最终结果中
+        }
+        return res;
+    }
+}
+```
 
 # 堆
 
