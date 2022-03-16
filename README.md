@@ -474,7 +474,7 @@ class Solution {
 
 # 二叉树
 ## 二叉树的遍历
-### 1. 二叉树的先序遍历
+### 1. 二叉树的先序遍历（题144）（深度优先DFS）
 - 递归，思路：访问根节点，先序遍历左子树，先序遍历右子树
 ```java
 import java.util.ArrayList;
@@ -506,20 +506,21 @@ class Solution {
         List<Integer> res = new ArrayList<Integer>();
         TreeNode curNode = root;    // 当前正在访问的结点
         while(curNode!=null || stack.isEmpty() == false){  // 栈非空说明还没访问
-            if (curNode!=null) {      // 左子树非空就一直往左走
+            // 内部没有循环，一次只走一步
+            while (curNode!=null) {      // 左子树非空就一直往左走
                 res.add(curNode.val);      // 访问
                 stack.push(curNode);       // 入栈
                 curNode = curNode.left;    // 往左走
-            } else {
-                curNode = stack.pop();  // 出栈
-                curNode = curNode.right;  // 往右走
             }
+            // 如果走到头了
+            curNode = stack.pop();  // 出栈
+            curNode = curNode.right;  // 往右走
         }
         return res;
     }
 }
 ```
-### 2. 二叉树的中序遍历
+### 2. 二叉树的中序遍历（94）（深度优先DFS）
 - 递归和非递归的思路都类似二叉树的先序遍历
 - 递归中序：
 ```java
@@ -547,27 +548,26 @@ class Solution {
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-
 class Solution {
     public List<Integer> inorderTraversal(TreeNode root) {
         List<Integer> res = new ArrayList<Integer>();
         Stack<TreeNode> stack = new Stack<TreeNode>();
         TreeNode curNode = root;
         while (curNode!=null || stack.empty()==false){
-            if (curNode!=null){   // 是否走到头
+            while (curNode!=null){   // 是否走到头
                 stack.push(curNode);      //压栈
                 curNode = curNode.left;   // 往左走
-            } else {              // 如果已经走到头
-                curNode = stack.pop();   // 出栈
-                res.add(curNode.val);    // 访问，和先序的区别在于先序是在入栈前访问，中序是在出栈后访问
-                curNode = curNode.right;   // 往右走
             }
+            // 如果已经走到头
+            curNode = stack.pop();   // 出栈
+            res.add(curNode.val);    // 访问，和先序的区别在于先序是在入栈前访问，中序是在出栈后访问
+            curNode = curNode.right;   // 往右走
         }
         return res;
     }
 }
 ```
-### 3. 二叉树的后序遍历
+### 3. 二叉树的后序遍历（题145）（深度优先DFS）
 - 递归思路和先序中序类似
 ```java
 import java.util.ArrayList;
@@ -631,7 +631,7 @@ if(curNode.right!=null && visited.contains(curNode.right)==false){   // 如果�
 }
 ```
 
-### 4. 二叉树的层序遍历（题102）
+### 4. 二叉树的层序遍历（题102）（广度优先BFS）
 - 二叉树的层序遍历借助队列实现
 - **这题不止要遍历，还要体现层次。当本层最后一个结点出队后，队中剩下的结点个数就是下一层的节点数
 ```java
@@ -659,13 +659,247 @@ class Solution {
 }
 ```
 
+## 最大最小深度
+### 1. 求二叉树的最大深度（104）
+- 递归思路很显然
+- 一个小问题：在返回的时候想都没想返回了一个三目运算符计算的最大值：
+- return 1+(maxDepth(root.left)>maxDepth(root.right)?maxDepth(root.left):maxDepth(root.right));
+  - 这种写法会进行重复的递归操作，比较的时候左右各递归一次，返回值的时候又递归一次，如果要这样写应该先把值存一下
+```java
+class Solution {
+    public int maxDepth(TreeNode root) {
+        if (root==null) return 0;      // 走到底就返回0
+        return 1+Math.max(maxDepth(root.left), maxDepth(root.right));   // 否则返回最大深度+1
+    }
+}
+```
+- 非递归思路：二叉树的按层广度优先遍历（BFS）
+```java
+import java.util.LinkedList;
+import java.util.Queue;
+class Solution {
+    public int maxDepth(TreeNode root) {
+        if (root==null) return 0;
+        Queue<TreeNode> queue = new LinkedList<TreeNode>();
+        queue.offer(root);
+        int res = 0;
+        while(queue.size()!=0){   // 每次处理一层
+            int count = queue.size();
+            while(count!=0){
+                TreeNode tmp = queue.poll();
+                if (tmp.left!=null) queue.offer(tmp.left);
+                if (tmp.right!=null) queue.offer(tmp.right);
+                count--;
+            }
+            res++;
+        }
+        return res;
+    }
+}
+```
+
+### 2. 求二叉树的最小深度（题111）
+- 递归思路：如果还按照递归求最大深度来写的话，是不对的，递归求最小深度要分成三种情况
+  - 只有左右子树都为空才能返回0
+  - 只有一边子树为空而另一边子树不为空的时候，返回不为空的那一边子树的最小深度+1
+  - 两边子树都不为空的时候，返回两边子树最小深度的最小值
+```java
+class Solution {
+    public int minDepth(TreeNode root) {
+        if (root==null) return 0;
+        else if (root.left!=null && root.right==null) return 1+minDepth(root.left);
+        else if (root.left==null && root.right!=null) return 1+minDepth(root.right);
+        else return 1+Math.min(minDepth(root.left), minDepth(root.right));
+    }
+}
+```
+- 非递归思路：广度优先层序遍历，找到任意一个叶节点（左右子树都为空）当即返回当前层数
+```java
+class Solution {
+    public int minDepth(TreeNode root) {
+        if (root==null) return 0;
+        int level = 0;
+        Queue<TreeNode> queue = new LinkedList<TreeNode>();    // 队列
+        queue.offer(root);
+        while (queue.size()!=0){
+            int count = queue.size();
+            if (count!=0) level++;  // 队列不为空则层数+1
+            while (count!=0){       // 处理本层
+                TreeNode tmp = queue.poll();
+                if (tmp.left==null && tmp.right==null) return level;   // 发现本层有叶节点就直接返回当前层数
+                else{
+                    if (tmp.left!=null) queue.offer(tmp.left);
+                    if (tmp.right!=null) queue.offer(tmp.right);
+                }
+                count--;
+            }
+        }
+        return level;
+    }
+}
+```
+## 最近公共祖先问题（LCA）
+## 二叉树的路径问题
+## 对称二叉树
+## 线索二叉树
+## 树、森林与二叉树的转换
+## 并查集
+
+## 二叉搜索树（二叉排序树BST）
+### 1. 判断给定的一棵二叉树是否是二叉排序树（题98）
+- 二叉排序树的特点：
+    1. root的左右子树都是二叉排序树
+    2. root左子树上的**所有**结点值都小于root（注意2、3两条，不能仅仅比较左右子树的根结点）
+    3. root右子树上的**所有**结点值都大于root
+- 思路1：两侧递归，要设置额外的参数限定上下界
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root,long low, long upper) {  // 增加两个参数
+        if (root==null) return true;
+        if (root.val<=low || root.val>=upper) return false;          // 根结点是否在指定的开区间内
+        boolean flagLeft = isValidBST(root.left, low, root.val);     // 更新区间往下判断
+        boolean flagRight = isValidBST(root.right, root.val, upper);
+        return flagLeft && flagRight;
+    }
+    public boolean isValidBST(TreeNode root) {
+       return isValidBST(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+}
+```
+- 思路2：中序非递归：循环中序遍历，保存当前访问的结点中序前值
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {    // 中序循环遍历模板
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        TreeNode curNode = root;
+        double backVal = -Double.MAX_VALUE;
+        while (curNode!=null || stack.empty()==false){
+            while (curNode!=null){   // 是否走到头
+                stack.push(curNode);      //压栈
+                curNode = curNode.left;   // 往左走
+            }
+            // 如果已经走到头
+            curNode = stack.pop();   // 出栈
+            if(curNode.val<=backVal) return false;
+            backVal = curNode.val;;    // 始终保存中序前值
+            curNode = curNode.right;   // 往右走
+        }
+        return true;
+    }
+}
+```
+- 思路3：中序递归
+```java
+class Solution {
+    double backVal = -Double.MAX_VALUE;
+    public boolean _isValidBST(TreeNode root){
+        if (root==null) return true;
+        boolean l = _isValidBST(root.left);
+        if (root.val<=backVal) return false;   // 在访问的位置加判断语句
+        backVal = root.val;
+        boolean r = _isValidBST(root.right);
+        return l && r;
+    }
+    public boolean isValidBST(TreeNode root) {
+        return _isValidBST(root);
+    }
+}
+```
+- 不难看出思路2、3都是在中序遍历访问的地方加判断语句
+
+### 2. 把有序数组转换为平衡二叉排序树（题108）
+- 递归思路：找中间结点，把两侧的递归结果挂在中间结点上。
+```java
+class Solution {
+    public TreeNode _sortedArrayToBST(int[] nums, int start, int end) {
+        if (start>end) return null;     // 空结点
+        if (start==end) return new TreeNode(nums[start]);     // 只剩一个结点
+
+        int mid = (start+end)/2;       // 找中点
+        TreeNode root = new TreeNode(nums[mid]);
+        root.left = _sortedArrayToBST(nums, start, mid-1);      // 把左右递归结果挂上
+        root.right = _sortedArrayToBST(nums, mid+1, end);
+        return root;
+    }
+    public TreeNode sortedArrayToBST(int[] nums) {
+        TreeNode res = _sortedArrayToBST(nums, 0, nums.length-1);
+        return res;
+    }
+}
+```
+### 3. 二叉排序树的插入操作
+### 4. 将二叉排序树原地展开为链表（题114）
+- 非递归：先序遍历
+```java
+class Solution {
+    public void flatten(TreeNode root) { // root是一棵先序有序树
+        if(root==null) return;
+        ArrayList<TreeNode> preList = new ArrayList<TreeNode>();
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        TreeNode curNode = root;
+        while(curNode!=null || stack.empty()==false){
+            while(curNode!=null){
+                preList.add(curNode);  // 前序遍历访问点
+                stack.push(curNode);
+                curNode = curNode.left;
+            }
+            curNode = stack.pop();
+            curNode = curNode.right;
+        }
+        int len = preList.size();
+        for (int i = 0; i<len-1; i++){
+            preList.get(i).left = null;
+            preList.get(i).right = preList.get(i+1);
+        }
+        preList.get(len-1).left = null;
+        preList.get(len-1).right = null;
+    }
+}
+
+```
+- 递归方式
+```java
+class Solution {
+    public void flatten(TreeNode root) {
+        if (root==null) return;
+        flatten(root.left);
+        flatten(root.right);
+        if(root.left!=null){
+            TreeNode tail = null;
+            TreeNode preTail = root.left;
+            while(preTail!=null){
+                tail = preTail;
+                tail.left = null;
+                preTail = preTail.right;
+            }
+            tail.right = root.right;
+            tail.left = null;
+            root.right = root.left;
+            root.left = null;
+        }
+    }
+}
+```
+### 小结
+- 二叉树的四种遍历方式是解决很多二叉树问题的基本模板。在解决具体问题是，首先应该想到对应的数据结构和基本算法模板。
+
+### 平衡二叉树（AVL树）
+## 哈夫曼树
+
+
+# 图
+
+
+# 查找
+
+
 # 堆
 
 # 字符串
 
 # 递归
 
-# 查找
+
 
 1.  注意利用序列的有序性
 2.  矩阵转化为二叉树：在一个 n \* m 的二维数组中，每一行都按照从左到右递增的顺序排序，每一列都按照从上到下递增的顺序排序。请完成一个高效的函数，输入这样的一个二维数组和一个整数，判断数组中是否含有该整数。
@@ -673,6 +907,8 @@ class Solution {
 - 旋转，视为一棵二叉排序树
 
 # 哈希
+
+# 滑动窗口
 
 # 贪心
 
