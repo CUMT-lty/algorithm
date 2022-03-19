@@ -471,7 +471,6 @@ class Solution {
 ## 双端队列及应用
 ## 栈和队列的相互实现
 
-
 # 二叉树
 ## 二叉树的遍历
 ### 1. 二叉树的先序遍历（题144）（深度优先DFS）
@@ -739,9 +738,224 @@ class Solution {
 }
 ```
 ## 最近公共祖先问题（LCA）
+最近公共祖先的定义：对于有根树 T 的两个结点 p、q，最近公共祖先表示为一个结点 x，满足 x 是 p、q 的祖先且 x 的深度尽可能大（一个节点也可以是它自己的祖先）
+### 1. 二叉树的两个结点的最近公共祖先（题236）
+- 思路1：
+  - 整个遍历一遍二叉树，记录所有结点的（结点：父节点）键值对；
+  - 从p向上遍历，把p的所有祖先结点存在一个列表中
+  - 然后再去遍历q的祖先结点，看在不在p的祖先结点集合里。
+```java
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+
+        if (p==root) return p;
+        if (q==root) return q;
+
+        HashMap<TreeNode, TreeNode> map = new HashMap<TreeNode, TreeNode>();      // 集合，记录每个结点的父结点
+        Queue<TreeNode> queue = new LinkedList<TreeNode>();
+        queue.offer(root);
+        map.put(root, null);   // 根节点没有祖先
+        TreeNode curNode;
+        while (queue.isEmpty()==false){        // 广度优先遍历
+            curNode = queue.poll();
+            if (curNode.left!=null){
+                map.put(curNode.left, curNode);
+                queue.offer(curNode.left);
+            }
+            if (curNode.right!=null){
+                map.put(curNode.right, curNode);
+                queue.offer(curNode.right);
+            }
+        }
+
+        ArrayList<TreeNode> pF = new ArrayList<TreeNode>();   // 记录 p 结点的所有祖先
+        curNode = p;
+        while(curNode!=null){
+            pF.add(curNode);                    // 加入祖先结点集合
+            TreeNode fN = map.get(curNode);     // 当前结点的父结点
+            curNode = fN;                       // 往上继续找
+        }
+
+        curNode = q;                            // 遍历 q 的祖先结点，返回第一个和 p 的祖先结点相同的
+        while(curNode!=null){
+            if (pF.contains(curNode)) return curNode;         // 如果当前结点在 p 的祖先结点集合中，返回当前结点
+            curNode = map.get(curNode);                       // 继续往上找
+        }
+        return null;           // 如果一直没找到就返回null
+    }
+}
+```
+- **思路2：递归**
+```java
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null || root == p || root == q) return root;  // 如果根为 p 或 q 或为null，直接返回root
+        TreeNode left = lowestCommonAncestor(root.left, p, q);    // 在左子树中找
+        TreeNode right = lowestCommonAncestor(root.right, p, q);  // 在右子树中找
+        if (right==null) return left;      // 如果p和q同时在左子树，则左子树必能找到最小公共祖先
+        else if (left==null) return right; // 如果p和q同时在右子树，则右子树必能找到最小公共祖先
+        else return root;                  // 如果p和q分别在左右子树，则公共祖先只能是root
+    }
+}
+```
+### 2. 二叉搜索树的最近公共祖先（题235）
+- 首先二叉搜索树自然也是二叉树，上题的两种做法也适用，但是利用二叉搜索树的有序性，可以简化一些过程
+- 思路1：递归
+```java
+class Solution {
+     public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null || root == p || root == q) return root;    // 递归返回条件
+        // 如果根节点比p和q都大，说明p和q都在根节点左边
+        if (root.val>p.val && root.val>q.val) return lowestCommonAncestor(root.left, p, q);
+        // 如果根节点比p和q都小，说明p和q都在根节点右边
+        else if (root.val<p.val && root.val<q.val) return lowestCommonAncestor(root.right, p, q);
+        // 否则的话p和q分别位于根节点的两侧，那此时最近公共祖先只能是根节点了
+        else return root;
+    }
+}
+```
+- 思路2：非递归
+```java
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+       while (root!=null){
+           if (p.val<root.val && q.val<root.val) root = root.left; // pq都在左，往左走
+           else if (p.val>root.val && q.val>root.val) root = root.right; // pq都在右，向右走
+           else return root;  // 否则最近公告祖先只能是根结点
+       }
+       return null;
+    }
+}
+```
+### 3. **求一棵树中任意两个节点之间经过的最少节点数（包括两个节点本身）
+- 思路1：转化为求最近公共祖先问题
+  - 求两个结点的最近公共祖先
+  - 从公共祖先往下遍历，记录遍历到两个结点的路径长
+  - 然后返回路径长之和
+- 思路2：
+
+## 二叉树的路径问题
+### 1. 求而二叉树的直径（题543）
+一棵二叉树的直径长度是任意两个结点路径长度中的最大值（这条路径可能穿过也可能不穿过根结点），下面这棵二叉树路径为[4,2,1,3]或[5,2,1,3]时达到最大值此时直径长度是3：
+![](images/2022-03-18-23-22-12.png)
+
+这题很好理解，本质是求**所有**结点左右子树最大深度之和的最大值。（注意这里是所有结点而不是根节点）。问题在于复杂度的优化。
+- 如果仅仅遍历所有结点，每路过一个结点就求一次最大深度，而求一次最大深度又相当于以当前结点为根把结点遍历了一次，这样会造成结点的重复遍历。
+- 所以希望能有效递归，自下而上，使得下层递归的结果返回给上层，解决下层结点重复遍历的问题。
+```java
+class Solution {
+
+    int maxWidth = 0;            // 始终记录当前的最大直径
+
+    public int curMax(TreeNode root){         // 返回值是当前结点往下走的最大路径长（注意不是结点数，是最大路径长）
+        if (root==null) return 0;
+        int left = root.left!=null ? curMax(root.left) + 1 : 0;
+        int right = root.right!=null ? curMax(root.right) + 1: 0;
+        maxWidth = Math.max(left+right, maxWidth);
+        return Math.max(left, right);
+    }
+    public int diameterOfBinaryTree(TreeNode root) {
+        curMax(root);
+        return maxWidth;
+    }
+}
+```
+- ![](images/2022-03-19-13-27-06.png)
+- 可以看到，上层使用的是下层的递归结果，每个节点都只遍历了一次
+
+### 2. 求二叉树的所有路径
+- 思路1：递归，注意每一次回溯都要删除下层结点，否则路径中的结点就会重复
+```java
+class Solution {
+    /**
+     * @Param root 当前根节点
+     * @param pathAbove 根以上的当前正在遍历的路径
+     * @param res 搜集到的完整路径
+     * @Return void
+     */
+    public void dfs(TreeNode root, String pathAbove, List<String> res){  // 深度优先递归
+        if (root==null) return;
+        StringBuffer path = new StringBuffer(pathAbove);
+        path.append(Integer.toString(root.val));  // 加入当前路径
+        if (root.left==null && root.right==null) res.add(path.toString());  // 如果到了叶节点，说明找到了一条路径，把这条路径加入结果集合中
+        else{  // 如果还没到叶节点
+            path.append("->"); // 继续遍历
+            dfs(root.left, path.toString(), res);  // 往左
+            dfs(root.right, path.toString(), res); // 往右
+        }
+    }
+    public List<String> binaryTreePaths(TreeNode root) {
+        ArrayList<String> res = new ArrayList<String>();
+        dfs(root, "", res);
+        return res;
+    }
+}
+```
+- 思路2：后序深度优先非递归
+```java
+class Solution {
+    public List<String> binaryTreePaths(TreeNode root) {
+
+        Stack<TreeNode> stack = new Stack<TreeNode>();  // 栈
+        HashSet<TreeNode> visited = new HashSet<TreeNode>();  // 记录是否访问过以该节点为根节点的右子树
+
+        ArrayList<String> pathAbove = new ArrayList<String>();
+        List<String> res = new ArrayList<String>();  // 完整路径结果集合
+
+        TreeNode curNode = root;
+
+        while(curNode!=null || stack.empty()==false){  // 后序深度优先遍历
+            while(curNode!=null){
+                pathAbove.add(Integer.toString(curNode.val));   // 加入当前路径
+                stack.push(curNode);
+                curNode = curNode.left;
+            }
+
+            TreeNode tmp = stack.peek();    // 取栈顶元素但是不出栈
+            if (tmp.left==null && tmp.right==null) {    // 如果走到叶节点了，加入当前结果集
+                res.add(String.join("->", pathAbove));
+            }
+
+            if (tmp.right!=null && visited.contains(tmp.right)==false){ // 如果有右子树且右子树没有被访问过
+                curNode = tmp.right;   // 向右走
+                visited.add(curNode);  // 标记访问过
+            } else {  // 两种情况，右子树有但是被访问过了，或者没有右子树走到右边叶节点了
+                stack.pop();    // 出栈
+                pathAbove.remove(pathAbove.size()-1);
+            }
+        }
+        return res;
+    }
+}
+```
+- stack中从栈底到栈顶就是当前的路径，每一次走到叶子结点的时候输出当前栈内从栈底到栈顶的整数序列即可。所以设置一个**和stack同步进出**的整数列表，每次走到叶子结点就输出这个整数列表。
+
+### 3. 二叉树的最大路径和
+```java
+class Solution {
+
+    int res = Integer.MIN_VALUE;
+
+    public int help(TreeNode root){
+        if (root==null) return 0;
+        int left = Math.max(help(root.left), 0);    // 如果不要某一侧的那一支了，相当于那一侧赋0
+        int right = Math.max(help(root.right), 0);
+        int cur = right+left+ root.val;
+        res = Math.max(cur, res);
+        return Math.max(left, right) + root.val;
+    }
+
+    public int maxPathSum(TreeNode root) {
+        help(root);
+        return this.res;
+    }
+}
+```
+易错点在于，什么时候舍弃某一支？如果所有的结点值都是正数，就不用剪枝了，需要剪枝是因为有复数的存在。所以当某一支的值小于零的时候，说明这一支要舍弃了，此时应给这一支赋0
+
 ## 二叉树的路径问题
 ## 对称二叉树
-## 线索二叉树
+## 线索二叉
 ## 树、森林与二叉树的转换
 ## 并查集
 
@@ -914,7 +1128,11 @@ class Solution {
 
 # 动态规划
 
-# 遇到的一些小问题
+
+# 时间复杂度和空间复杂度的计算
+
+
+# 遇到的一些小问题记录一下
 
 1.  java的条件判断是短路式判断，下面两种写法的区别在于：条件判断会从左往右判断，如果先判断：nums[right]>target，这一句，有可能发生数组下标越界，但是把right>=0放在左边先判断的话，如果不满足这个要求，在短路式判断下整个与表达式就会被判错，后半句就不会参与判断，就不会发生数组下标越界了。
 
